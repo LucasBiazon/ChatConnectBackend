@@ -1,0 +1,60 @@
+// schema.prisma
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  idUser       Int            @id @default(autoincrement())
+  email        String         @unique
+  password     String
+  name         String
+  telephone    String         @unique
+  profileImg   String
+  biography    String
+  birthDate    DateTime
+  status       String         @default("active")
+  createdAt    DateTime       @default(now())
+  deletedAt    DateTime?
+  updatedAt    DateTime?      @updatedAt
+  sentMessages Message[]      @relation("SentMessages")
+  chatRooms    ChatRoom[]     @relation("UserChatRooms")
+  UserChatRoom UserChatRoom[]
+}
+
+model ChatRoom {
+  idChatRoom   Int            @id @default(autoincrement())
+  name         String
+  description  String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  users        User[]         @relation("UserChatRooms")
+  messages     Message[]      @relation("ChatRoomMessages")
+  UserChatRoom UserChatRoom[]
+}
+
+model UserChatRoom {
+  user       User     @relation(fields: [userId], references: [idUser])
+  userId     Int
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [idChatRoom])
+  chatRoomId Int
+
+  @@id([userId, chatRoomId])
+}
+
+model Message {
+  idMessage          Int       @id @default(autoincrement())
+  content            String
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  senderId           Int
+  user               User      @relation("SentMessages", fields: [senderId], references: [idUser])
+  chatRoomId         Int
+  chatRoom           ChatRoom? @relation("ChatRoomMessages", fields: [chatRoomId], references: [idChatRoom])
+  chatRoomIdChatRoom Int?
+}
